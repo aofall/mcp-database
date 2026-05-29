@@ -1,0 +1,13 @@
+config.yaml
+
+# Build outputs
+*.exe
+*.test
+*.out
+bin/
+dist/
+
+# Local/editor files
+.idea/
+.vscode/
+*.log

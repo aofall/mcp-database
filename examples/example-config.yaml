@@ -1,0 +1,20 @@
+instances:
+  # Copy this file to config.yaml and fill in real connection details locally.
+  # Do not commit config.yaml, because it contains database credentials.
+
+  dev_oracle:
+    type: "oracle"
+    user: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    host: "127.0.0.1"
+    port: 1521
+    serviceName: "YOUR_SERVICE_NAME"
+
+  # More instances can be added under instances:
+  # prod_oracle:
+  #   type: "oracle"
+  #   user: "YOUR_PROD_USERNAME"
+  #   password: "YOUR_PROD_PASSWORD"
+  #   host: "prod-db.example.com"
+  #   port: 1521
+  #   serviceName: "PROD_SERVICE"
