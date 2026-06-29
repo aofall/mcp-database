@@ -4,13 +4,19 @@
 
 ## 服务能力
 
-该服务通过 MCP stdio 工具暴露数据库访问能力。服务会从 YAML 配置文件读取数据库实例，目前支持 Oracle 数据库连接。
+该服务通过 MCP stdio 工具暴露数据库访问能力。服务会从 YAML 配置文件读取数据库实例，目前支持 Oracle、MySQL 和 PostgreSQL 数据库连接。
 
 可用工具：
 
 - `execute_select`：执行以 `SELECT` 或 `WITH` 开头的只读 SQL。
 - `describe_object`：查看指定 Schema 下表或视图的字段元数据。
 - `get_execution_plan`：获取 SQL 执行计划。
+
+数据库类型：
+
+- Oracle：`oracle`
+- MySQL：`mysql`
+- PostgreSQL：`postgresql`、`postgres`、`pg`
 
 ## 配置规则
 
@@ -70,3 +76,5 @@
   "sql": "SELECT column_name FROM table_name WHERE id = :id"
 }
 ```
+
+MySQL 和 PostgreSQL 查询参数应使用目标数据库自身支持的 SQL 写法，例如 MySQL 的 `?` 占位符或 PostgreSQL 的 `$1` 占位符；通过 MCP 工具直接执行的查询通常应写成完整 SQL 文本。

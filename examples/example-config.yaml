@@ -10,6 +10,25 @@ instances:
     port: 1521
     serviceName: "YOUR_SERVICE_NAME"
 
+  dev_mysql:
+    type: "mysql"
+    user: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    host: "127.0.0.1"
+    port: 3306
+    database: "YOUR_DATABASE"
+    charset: "utf8mb4"
+
+  dev_postgresql:
+    # Supported values: "postgresql", "postgres", "pg"
+    type: "postgresql"
+    user: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    host: "127.0.0.1"
+    port: 5432
+    database: "YOUR_DATABASE"
+    sslMode: "disable"
+
   # More instances can be added under instances:
   # prod_oracle:
   #   type: "oracle"

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/sijms/go-ora/v2" // 引入纯 Go Oracle 驱动
@@ -23,15 +22,6 @@ type OracleConfig struct {
 	ServiceName string
 }
 
-func closeRows(rows *sql.Rows, errp *error) {
-	if rows == nil {
-		return
-	}
-	if closeErr := rows.Close(); closeErr != nil && *errp == nil {
-		*errp = closeErr
-	}
-}
-
 func NewOracleDriver(cfg OracleConfig) (*OracleDriver, error) {
 	// go-ora 的 DSN 格式
 	dsn := fmt.Sprintf("oracle://%s:%s@%s:%d/%s",
@@ -42,12 +32,10 @@ func NewOracleDriver(cfg OracleConfig) (*OracleDriver, error) {
 		return nil, err
 	}
 
-	// 4. 连接池管理配置
-	db.SetMaxOpenConns(25)                 // 最大打开连接数
-	db.SetMaxIdleConns(5)                  // 最大空闲连接数
-	db.SetConnMaxLifetime(5 * time.Minute) // 连接最大存活时间
+	configurePool(db)
 
 	if err := db.Ping(); err != nil {
+		_ = db.Close()
 		return nil, err
 	}
 
@@ -56,60 +44,7 @@ func NewOracleDriver(cfg OracleConfig) (*OracleDriver, error) {
 
 // ExecuteSelect 1. SELECT且支持CTE查询 + 智能截断与分页
 func (o *OracleDriver) ExecuteSelect(ctx context.Context, query string, maxRows int) (columns []string, results []map[string]any, truncated bool, err error) {
-	query = strings.TrimSpace(query)
-	upperQuery := strings.ToUpper(query)
-	if !strings.HasPrefix(upperQuery, "SELECT") && !strings.HasPrefix(upperQuery, "WITH") {
-		return nil, nil, false, fmt.Errorf("security violation: only SELECT or WITH statements are allowed")
-	}
-
-	rows, err := o.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, nil, false, err
-	}
-	defer closeRows(rows, &err)
-
-	columns, err = rows.Columns()
-	if err != nil {
-		return nil, nil, false, err
-	}
-
-	count := 0
-
-	for rows.Next() {
-		if count >= maxRows {
-			truncated = true
-			break // 智能截断：达到阈值停止读取
-		}
-
-		// Go 语言动态读取列数据的标准做法
-		values := make([]any, len(columns))
-		valuePtrs := make([]any, len(columns))
-		for i := range columns {
-			valuePtrs[i] = &values[i]
-		}
-
-		if err := rows.Scan(valuePtrs...); err != nil {
-			return nil, nil, false, err
-		}
-
-		rowMap := make(map[string]any)
-		for i, col := range columns {
-			val := values[i]
-			// 处理 Go sql 中的 byte 数组转字符串
-			if b, ok := val.([]byte); ok {
-				rowMap[col] = string(b)
-			} else {
-				rowMap[col] = val
-			}
-		}
-		results = append(results, rowMap)
-		count++
-	}
-	if err := rows.Err(); err != nil {
-		return nil, nil, false, err
-	}
-
-	return columns, results, truncated, nil
+	return executeSelect(ctx, o.db, query, maxRows)
 }
 
 // DescribeObject 2. DESCRIBE (支持普通表和视图)
@@ -152,10 +87,9 @@ func (o *OracleDriver) DescribeObject(ctx context.Context, schemaName, objectNam
 
 // GetExecutionPlan 3. EXPLAIN PLAN 获取执行计划
 func (o *OracleDriver) GetExecutionPlan(ctx context.Context, query string) (plan string, err error) {
-	query = strings.TrimSpace(query)
-	upperQuery := strings.ToUpper(query)
-	if !strings.HasPrefix(upperQuery, "SELECT") && !strings.HasPrefix(upperQuery, "WITH") {
-		return "", fmt.Errorf("explain plan only supports SELECT or WITH statements")
+	query, err = validateReadOnlyQuery(query, "explain plan")
+	if err != nil {
+		return "", err
 	}
 
 	statementId := "mcp_" + strings.ReplaceAll(uuid.New().String(), "-", "")[:20]

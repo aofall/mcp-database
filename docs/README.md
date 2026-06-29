@@ -7,7 +7,8 @@
 - Load one or more database instances from a YAML configuration file.
 - Execute `SELECT` or `WITH` queries through the `execute_select` tool.
 - Inspect table or view columns through the `describe_object` tool.
-- Get Oracle SQL execution plans through the `get_execution_plan` tool.
+- Get SQL execution plans through the `get_execution_plan` tool.
+- Supports Oracle, MySQL, and PostgreSQL databases.
 - Return at most 50 rows by default to reduce context overflow risk.
 
 ## Requirements
@@ -35,7 +36,31 @@ instances:
     host: "127.0.0.1"
     port: 1521
     serviceName: "YOUR_SERVICE_NAME"
+
+  dev_mysql:
+    type: "mysql"
+    user: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    host: "127.0.0.1"
+    port: 3306
+    database: "YOUR_DATABASE"
+    charset: "utf8mb4"
+
+  dev_pg:
+    type: "pg"
+    user: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    host: "127.0.0.1"
+    port: 5432
+    database: "YOUR_DATABASE"
+    sslMode: "disable"
 ```
+
+Supported database types:
+
+- Oracle: `oracle`
+- MySQL: `mysql`
+- PostgreSQL: `postgresql`, `postgres`, `pg`
 
 `examples\example-config.yaml` should contain placeholders only and is safe to commit. `config.yaml` contains real database usernames, passwords, hosts, and service names. It is ignored by `.gitignore` and must never be committed.
 
@@ -85,7 +110,7 @@ Arguments:
 
 ### get_execution_plan
 
-Runs Oracle `EXPLAIN PLAN` for a SQL query and returns the formatted execution plan text.
+Runs the database-specific execution plan command for a SQL query and returns the formatted execution plan text.
 
 Arguments:
 

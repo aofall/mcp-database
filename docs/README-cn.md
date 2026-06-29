@@ -7,7 +7,8 @@
 - 从 YAML 配置文件加载一个或多个数据库实例。
 - 通过 `execute_select` 工具执行 `SELECT` 或 `WITH` 查询。
 - 通过 `describe_object` 工具查看表或视图的字段结构。
-- 通过 `get_execution_plan` 工具获取 Oracle SQL 执行计划。
+- 通过 `get_execution_plan` 工具获取 SQL 执行计划。
+- 支持 Oracle、MySQL 和 PostgreSQL 数据库。
 - 查询结果默认最多返回 50 行，避免上下文过大。
 
 ## 环境要求
@@ -35,7 +36,31 @@ instances:
     host: "127.0.0.1"
     port: 1521
     serviceName: "YOUR_SERVICE_NAME"
+
+  dev_mysql:
+    type: "mysql"
+    user: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    host: "127.0.0.1"
+    port: 3306
+    database: "YOUR_DATABASE"
+    charset: "utf8mb4"
+
+  dev_pg:
+    type: "pg"
+    user: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    host: "127.0.0.1"
+    port: 5432
+    database: "YOUR_DATABASE"
+    sslMode: "disable"
 ```
+
+数据库类型支持：
+
+- Oracle：`oracle`
+- MySQL：`mysql`
+- PostgreSQL：`postgresql`、`postgres`、`pg`
 
 `examples\example-config.yaml` 只应保存占位示例，可以提交到 Git。`config.yaml` 会保存真实数据库账号、密码、主机地址和服务名，已经被 `.gitignore` 忽略，绝对不要提交到 Git。
 
@@ -85,7 +110,7 @@ go -o mcp-database.exe .
 
 ### get_execution_plan
 
-对 SQL 执行 Oracle `EXPLAIN PLAN`，并返回格式化后的执行计划文本。
+对 SQL 执行数据库对应的执行计划命令，并返回格式化后的执行计划文本。
 
 参数：
 

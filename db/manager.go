@@ -1,6 +1,10 @@
 package db
 
-import "fmt"
+import (
+	"fmt"
+
+	"gopkg.in/yaml.v3"
+)
 
 type InstanceManager struct {
 	instances map[string]DBDriver
@@ -12,13 +16,13 @@ func NewInstanceManager() *InstanceManager {
 	}
 }
 
-func (m *InstanceManager) Register(alias string, cfg Config) error {
-	driver, err := NewDriver(cfg)
+func (m *InstanceManager) Register(alias string, cfg yaml.Node) (string, error) {
+	driver, dbType, err := NewDriver(cfg)
 	if err != nil {
-		return err
+		return dbType, err
 	}
 	m.instances[alias] = driver
-	return nil
+	return dbType, nil
 }
 
 func (m *InstanceManager) Get(alias string) (DBDriver, error) {

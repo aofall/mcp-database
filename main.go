@@ -46,14 +46,14 @@ func main() {
 	// 3. 遍历并注册所有数据库实例
 	registeredCount := 0
 	for alias, cfg := range appConfig.Instances {
-		err := manager.Register(alias, cfg)
+		dbType, err := manager.Register(alias, cfg)
 		if err != nil {
 			// 如果某个实例连不上，打印警告但继续加载其他实例
 			log.Printf("警告: 无法注册数据库实例 '%s': %v", alias, err)
 			continue
 		}
 		registeredCount++
-		log.Printf("成功注册数据库实例: %s (%s)", alias, cfg.Type)
+		log.Printf("成功注册数据库实例: %s (%s)", alias, dbType)
 	}
 
 	if registeredCount == 0 {
